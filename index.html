@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskFlow - Gestor de Tareas PWA</title>
+    <meta name="description" content="Aplicación web progresiva para gestionar tus tareas de manera eficiente. Funciona offline y es instalable.">
+    <meta name="author" content="TaskFlow">
+    <meta name="keywords" content="tareas, productividad, PWA, offline, todo list, organizador">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TaskFlow">
+    <link rel="manifest" href="./manifest.json">
+    
+    <!-- Iconos de la aplicación -->
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512x512.png">
+    <link rel="apple-touch-icon" href="icons/icon-512x512.png">
+    
+    <!-- Fuentes e iconos -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p>Preparando tu espacio de trabajo...</p>
+        </div>
+    </div>
+
+    <!-- App principal -->
+    <div id="app" class="app hidden">
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 11l3 3l8-8"></path>
+                        <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9s4.03-9 9-9c1.65 0 3.19.45 4.52 1.23"></path>
+                    </svg>
+                    <h1>TaskFlow</h1>
+                </div>
+                <p class="subtitle">
+                    Tu compañero inteligente para la productividad personal. Organiza, prioriza y completa tus tareas con estilo, disponible en cualquier momento y lugar.
+                </p>
+            </div>
+        </header>
+
+        <!-- Sección de estadísticas  -->
+        <section class="stats-section">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span>Total de Tareas</span>
+                        <i class="fas fa-tasks stat-icon"></i>
+                    </div>
+                    <div class="stat-value" id="total-tasks">0</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span>Pendientes</span>
+                        <i class="fas fa-clock stat-icon"></i>
+                    </div>
+                    <div class="stat-value" id="pending-tasks">0</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span>Completadas</span>
+                        <i class="fas fa-check-circle stat-icon stat-icon-success"></i>
+                    </div>
+                    <div class="stat-value" id="completed-tasks">0</div>
+                </div>
+
+                <div class="progress-card">
+                    <div class="progress-header">
+                        <span>Progreso General</span>
+                        <span class="progress-percentage" id="progress-percentage">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Formulario para agregar tareas -->
+        <section class="form-section">
+            <form class="task-form" id="task-form">
+                <input 
+                    type="text" 
+                    id="task-input" 
+                    placeholder="¿Qué quieres lograr hoy? Escribe tu tarea aquí..."
+                    class="task-input"
+                    required
+                    maxlength="500"
+                    autocomplete="off"
+                >
+                <button type="submit" class="add-button" id="add-button" disabled>
+                    <i class="fas fa-plus plus-icon"></i>
+                    Agregar Tarea
+                </button>
+            </form>
+        </section>
+
+        <!-- Sistema de filtros -->
+        <section class="filters-section">
+            <div class="filters" id="filters">
+                <button class="filter-btn active" data-filter="all" title="Ver todas las tareas">
+                    <i class="fas fa-list"></i>
+                    Todas 
+                    <span class="filter-count" id="filter-all-count">0</span>
+                </button>
+                <button class="filter-btn" data-filter="pending" title="Ver solo pendientes">
+                    <i class="fas fa-clock"></i>
+                    Pendientes 
+                    <span class="filter-count" id="filter-pending-count">0</span>
+                </button>
+                <button class="filter-btn" data-filter="completed" title="Ver solo completadas">
+                    <i class="fas fa-check"></i>
+                    Completadas 
+                    <span class="filter-count" id="filter-completed-count">0</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Sección de acciones -->
+        <section class="actions-section">
+            <button class="clear-button hidden" id="clear-completed" title="Eliminar todas las tareas completadas">
+                <i class="fas fa-trash trash-icon"></i>
+                <span id="clear-text">Limpiar completadas</span>
+            </button>
+        </section>
+
+        <!-- Sección principal de tareas -->
+        <section class="tasks-section">
+            <div class="task-list" id="task-list"></div>
+            <div class="empty-state hidden" id="empty-state">
+                <div class="empty-icon">📝</div>
+                <h2 class="empty-title" id="empty-title">No hay tareas</h2>
+                <p class="empty-description" id="empty-description">
+                    Comienza agregando tu primera tarea para organizarte mejor
+                </p>
+            </div>
+        </section>
+
+        <!-- Footer con información de la PWA -->
+        <footer class="footer">
+            <p>
+                <i class="fas fa-mobile-alt"></i>
+                Aplicación Web Progresiva • 
+                <i class="fas fa-wifi"></i>
+                Funciona offline • 
+                <i class="fas fa-download"></i>
+                Instalable en tu dispositivo
+            </p>
+        </footer>
+    </div>
+
+    <!-- Sistema de notificaciones -->
+    <div class="toast hidden" id="toast">
+        <div class="toast-content">
+            <div class="toast-icon" id="toast-icon"></div>
+            <div class="toast-text">
+                <div class="toast-title" id="toast-title"></div>
+                <div class="toast-description" id="toast-description"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="./js/app.js"></script>
+</body>
+</html>
